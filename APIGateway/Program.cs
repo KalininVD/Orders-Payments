@@ -1,41 +1,29 @@
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+var reverseProxySection = builder.Configuration.GetSection("ReverseProxy");
+
+void ReplaceEnvVarsInSection(IConfigurationSection section)
+{
+    foreach (var child in section.GetChildren())
+    {
+        if (child.Value != null)
+        {
+            var newValue = Environment.ExpandEnvironmentVariables(child.Value);
+            builder.Configuration[$"{child.Path}"] = newValue;
+        }
+        else
+        {
+            ReplaceEnvVarsInSection(child);
+        }
+    }
+}
+
+ReplaceEnvVarsInSection(reverseProxySection);
+
+builder.Services.AddReverseProxy().LoadFromConfig(reverseProxySection);
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
-
-app.UseHttpsRedirection();
-
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+app.MapReverseProxy();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
