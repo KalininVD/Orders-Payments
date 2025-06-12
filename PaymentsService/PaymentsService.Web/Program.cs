@@ -2,7 +2,7 @@ using PaymentsService.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddControllers();
 
@@ -21,6 +21,6 @@ if (app.Environment.IsDevelopment())
 app.MapControllers();
 app.UseHttpsRedirection();
 
-// PaymentsInfrastructure.Migrate(app.Services);
+PaymentsInfrastructure.Migrate(app.Services);
 
 app.Run();
