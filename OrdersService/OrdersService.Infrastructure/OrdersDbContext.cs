@@ -1,11 +1,11 @@
 using Microsoft.EntityFrameworkCore;
-// using OrdersService.Domain.Entities;
+using OrdersService.Domain.Entities;
 
 namespace OrdersService.Infrastructure;
 
 public class OrdersDbContext(DbContextOptions<OrdersDbContext> options) : DbContext(options)
 {
-    // public DbSet<Order> Orders { get; set; }
+    public DbSet<Order> Orders { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

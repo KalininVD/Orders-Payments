@@ -1,11 +1,11 @@
 using Microsoft.EntityFrameworkCore;
-// using PaymentsService.Domain.Entities;
+using PaymentsService.Domain.Entities;
 
 namespace PaymentsService.Infrastructure;
 
 public class PaymentsDbContext(DbContextOptions<PaymentsDbContext> options) : DbContext(options)
 {
-    // public DbSet<Payment> Payments { get; set; }
+    public DbSet<Account> Accounts { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
