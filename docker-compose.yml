@@ -1,0 +1,111 @@
+services:
+
+  apigateway:
+    image: apigateway
+    build:
+      context: .
+      dockerfile: APIGateway/Dockerfile
+    ports:
+      - "${API_GATEWAY_PORT}:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - API_PORT=80
+      - ORDERS_SERVICE_HOST=ordersservice
+      - ORDERS_SERVICE_PORT=80
+      - ORDERS_SERVICE_NAME=orders
+      - PAYMENTS_SERVICE_HOST=paymentsservice
+      - PAYMENTS_SERVICE_PORT=80
+      - PAYMENTS_SERVICE_NAME=payments
+    networks:
+      - orders_payments_network
+    depends_on:
+      - paymentsservice
+      - ordersservice
+    restart: on-failure
+
+  ordersservice:
+    image: ordersservice
+    build:
+      context: .
+      dockerfile: OrdersService/Dockerfile
+    ports:
+      - "${ORDERS_SERVICE_PORT}:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - API_PORT=80
+      - POSTGRES_HOST=ordersservicepostgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB_NAME=${ORDERS_SERVICE_POSTGRES_DB_NAME}
+      - POSTGRES_USER=${ORDERS_SERVICE_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${ORDERS_SERVICE_POSTGRES_PASSWORD}
+      - PAYMENTS_SERVICE_HOST=paymentsservice
+      - PAYMENTS_SERVICE_PORT=80
+    networks:
+      - orders_payments_network
+    depends_on:
+      - ordersservicepostgres
+    restart: on-failure
+
+  ordersservicepostgres:
+    container_name: ordersservicepostgres
+    image: postgres:latest
+    ports:
+      - "${ORDERS_SERVICE_POSTGRES_PORT}:5432"
+    environment:
+      - POSTGRES_USER=${ORDERS_SERVICE_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${ORDERS_SERVICE_POSTGRES_PASSWORD}
+      - POSTGRES_DB=${ORDERS_SERVICE_POSTGRES_DB_NAME}
+    networks:
+      - orders_payments_network
+    volumes:
+      - orders_data:/var/lib/postgresql/data
+    restart: on-failure
+
+  paymentsservice:
+    image: paymentsservice
+    build:
+      context: .
+      dockerfile: PaymentsService/Dockerfile
+    ports:
+      - "${PAYMENTS_SERVICE_PORT}:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - API_PORT=80
+      - POSTGRES_HOST=paymentsservicepostgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB_NAME=${PAYMENTS_SERVICE_POSTGRES_DB_NAME}
+      - POSTGRES_USER=${PAYMENTS_SERVICE_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${PAYMENTS_SERVICE_POSTGRES_PASSWORD}
+      - PAYMENTS_SERVICE_HOST=paymentsservice
+      - PAYMENTS_SERVICE_PORT=80
+    networks:
+      - orders_payments_network
+    depends_on:
+      - paymentsservicepostgres
+    restart: on-failure
+
+  paymentsservicepostgres:
+    container_name: paymentsservicepostgres
+    image: postgres:latest
+    ports:
+      - "${PAYMENTS_SERVICE_POSTGRES_PORT}:5432"
+    environment:
+      - POSTGRES_USER=${PAYMENTS_SERVICE_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${PAYMENTS_SERVICE_POSTGRES_PASSWORD}
+      - POSTGRES_DB=${PAYMENTS_SERVICE_POSTGRES_DB_NAME}
+    networks:
+      - orders_payments_network
+    volumes:
+      - payments_data:/var/lib/postgresql/data
+    restart: on-failure
+
+networks:
+  orders_payments_network:
+    name: orders_payments_network
+
+volumes:
+  payments_data:
+  orders_data:
