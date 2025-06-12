@@ -1,4 +1,4 @@
-using OrdersService.Domain.ValueObjects;
+using OrdersService.Domain.Enums;
 
 namespace OrdersService.Domain.Entities;
 
@@ -12,5 +12,5 @@ public class Order
 
     public string Description { get; init; } = string.Empty;
 
-    public StatusVO Status { get; init; } = StatusVO.New;
+    public StatusEnum Status { get; init; } = StatusEnum.New;
 }
