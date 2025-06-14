@@ -7,12 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Update="appsettings.Development.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\OrdersService.Application\OrdersService.Application.csproj" />
     <ProjectReference Include="..\OrdersService.Infrastructure\OrdersService.Infrastructure.csproj" />
   </ItemGroup>
