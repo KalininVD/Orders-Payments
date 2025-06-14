@@ -5,15 +5,15 @@ EXPOSE ${API_PORT}
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["OrdersService/OrdersService.Web/OrdersService.Web.csproj", "OrdersService.Web/"]
-COPY ["OrdersService/OrdersService.Application/OrdersService.Application.csproj", "OrdersService.Application/"]
-COPY ["OrdersService/OrdersService.Domain/OrdersService.Domain.csproj", "OrdersService.Domain/"]
-COPY ["OrdersService/OrdersService.Infrastructure/OrdersService.Infrastructure.csproj", "OrdersService.Infrastructure/"]
+COPY ["OrdersService.Web/OrdersService.Web.csproj", "OrdersService.Web/"]
+COPY ["OrdersService.Application/OrdersService.Application.csproj", "OrdersService.Application/"]
+COPY ["OrdersService.Domain/OrdersService.Domain.csproj", "OrdersService.Domain/"]
+COPY ["OrdersService.Infrastructure/OrdersService.Infrastructure.csproj", "OrdersService.Infrastructure/"]
 RUN dotnet restore "OrdersService.Web/OrdersService.Web.csproj"
-COPY OrdersService/OrdersService.Web/ ./OrdersService.Web/
-COPY OrdersService/OrdersService.Application/ ./OrdersService.Application/
-COPY OrdersService/OrdersService.Domain/ ./OrdersService.Domain/
-COPY OrdersService/OrdersService.Infrastructure/ ./OrdersService.Infrastructure/
+COPY OrdersService.Web/ ./OrdersService.Web/
+COPY OrdersService.Application/ ./OrdersService.Application/
+COPY OrdersService.Domain/ ./OrdersService.Domain/
+COPY OrdersService.Infrastructure/ ./OrdersService.Infrastructure/
 WORKDIR "/src/OrdersService.Web"
 RUN dotnet build "OrdersService.Web.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
