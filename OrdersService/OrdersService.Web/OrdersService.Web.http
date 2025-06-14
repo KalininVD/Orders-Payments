@@ -1,6 +1,1 @@
-@OrdersService.Web_HostAddress = http://localhost:5218
-
-GET {{OrdersService.Web_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
+@OrdersService_Host = http://localhost:5002
