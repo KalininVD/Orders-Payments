@@ -3,6 +3,7 @@
 @paymentsHost = http://localhost:5001
 @userId = 3fa85f64-5717-4562-b3fc-2c963f66afa6
 
+
 ###
 # Создание нового счета для пользователя
 # Ожидаемый ответ: 201 Created с ID нового счета
@@ -12,6 +13,7 @@ Content-Type: application/json
 {
   "userId": "{{userId}}"
 }
+
 
 ###
 # Попытка создать еще один счет для того же пользователя
@@ -23,6 +25,7 @@ Content-Type: application/json
   "userId": "{{userId}}"
 }
 
+
 ###
 # Пополнение существующего счета
 # Ожидаемый ответ: 200 OK
@@ -33,6 +36,7 @@ Content-Type: application/json
   "userId": "{{userId}}",
   "amount": 150.75
 }
+
 
 ###
 # Попытка пополнить несуществующий счет
@@ -57,10 +61,12 @@ Content-Type: application/json
   "amount": -50.00
 }
 
+
 ###
 # Получение информации о счете по ID пользователя
 # Ожидаемый ответ: 200 OK с данными счета
 GET {{paymentsHost}}/api/accounts/user/{{userId}}
+
 
 ###
 # Получение информации о несуществующем счете по ID пользователя
@@ -71,4 +77,4 @@ GET {{paymentsHost}}/api/accounts/user/00000000-0000-0000-0000-000000000001
 ###
 # Получение информации о счете по его собственному ID
 # Ожидаемый ответ: 200 OK
-GET {{paymentsHost}}/api/accounts/aed3460d-b1b8-4b76-9a0a-fc6d05628fe1
+GET {{paymentsHost}}/api/accounts/4db69e11-60fb-484f-8568-b1109414953c

@@ -3,6 +3,7 @@
 @ordersHost = http://localhost:5002
 @userId = 3fa85f64-5717-4562-b3fc-2c963f66afa6
 
+
 ###
 # Создание нового заказа
 # Ожидаемый ответ: 201 Created с ID нового заказа
@@ -12,18 +13,21 @@ Content-Type: application/json
 {
   "userId": "{{userId}}",
   "amount": 50.25,
-  "description": "Покупка резиновой уточки для ванной"
+  "description": "Книга про Clean Architecture"
 }
+
 
 ###
 # Получение списка всех заказов для пользователя
 # Ожидаемый ответ: 200 OK с массивом заказов
 GET {{ordersHost}}/api/orders?userId={{userId}}
 
+
 ###
 # Получение конкретного заказа по его ID
 # Ожидаемый ответ: 200 OK с данными заказа.
-GET {{ordersHost}}/api/orders/<ЗДЕСЬ_ДОЛЖЕН_БЫТЬ_ID_ЗАКАЗА>
+GET {{ordersHost}}/api/orders/2ad62757-3727-462d-9bc4-fd858fbb137b
+
 
 ###
 # Попытка получить несуществующий заказ
@@ -34,7 +38,8 @@ GET {{ordersHost}}/api/orders/00000000-0000-0000-0000-000000000000
 ###
 # Отмена заказа
 # Ожидаемый ответ: 204 NoContent
-PATCH {{ordersHost}}/api/orders/<ЗДЕСЬ_ДОЛЖЕН_БЫТЬ_ID_ЗАКАЗА_ДЛЯ_ОТМЕНЫ>/cancel
+PATCH {{ordersHost}}/api/orders/80b1a543-e1a8-494c-918e-71719c410361/cancel
+
 
 ###
 # Создание заказа с некорректными данными (отрицательная сумма)
