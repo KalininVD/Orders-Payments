@@ -54,6 +54,11 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
                 errorMessage = exception.Message;
                 break;
 
+            case InvalidOperationException:
+                response.StatusCode = (int)HttpStatusCode.BadRequest;
+                errorMessage = exception.Message;
+                break;
+
             case KeyNotFoundException:
                 response.StatusCode = (int)HttpStatusCode.NotFound;
                 errorMessage = exception.Message;
