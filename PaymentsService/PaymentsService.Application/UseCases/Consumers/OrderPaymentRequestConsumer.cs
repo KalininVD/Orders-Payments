@@ -7,6 +7,10 @@ namespace PaymentsService.Application.UseCases.Consumers;
 
 public class OrderPaymentRequestConsumer(IAccountRepository accountRepository, IUnitOfWork unitOfWork, IPublishEndpoint publishEndpoint, ILogger<OrderPaymentRequestConsumer> logger) : IConsumer<OrderPaymentRequest>
 {
+    private readonly IAccountRepository _accountRepository = accountRepository;
+    private readonly IUnitOfWork _unitOfWork = unitOfWork;
+    private readonly IPublishEndpoint _publishEndpoint = publishEndpoint;
+
     private readonly ILogger<OrderPaymentRequestConsumer> _logger = logger;
 
     public async Task Consume(ConsumeContext<OrderPaymentRequest> context)
@@ -17,7 +21,7 @@ public class OrderPaymentRequestConsumer(IAccountRepository accountRepository, I
             "Received payment request for OrderId: {OrderId}, UserId: {UserId}, Amount: {Amount}",
             message.OrderId, message.UserId, message.Amount);
 
-        var account = await accountRepository.GetByUserIdAsync(message.UserId, context.CancellationToken);
+        var account = await _accountRepository.GetByUserIdAsync(message.UserId, context.CancellationToken);
 
         if (account is null)
         {
@@ -25,7 +29,7 @@ public class OrderPaymentRequestConsumer(IAccountRepository accountRepository, I
                 "Account for UserId: {UserId} not found. Failing payment for OrderId: {OrderId}",
                 message.UserId, message.OrderId);
 
-            await publishEndpoint.Publish(new OrderPaymentFailed(message.OrderId, "Account not found."), context.CancellationToken);
+            await _publishEndpoint.Publish(new OrderPaymentFailed(message.OrderId, "Account not found."), context.CancellationToken);
 
             return;
         }
@@ -34,13 +38,13 @@ public class OrderPaymentRequestConsumer(IAccountRepository accountRepository, I
         {
             account.Withdraw(message.Amount);
 
-            await unitOfWork.SaveChangesAsync(context.CancellationToken);
+            await _unitOfWork.SaveChangesAsync(context.CancellationToken);
 
             _logger.LogInformation(
                 "Successfully processed payment for OrderId: {OrderId}",
                 message.OrderId);
 
-            await publishEndpoint.Publish(new OrderPaymentSucceeded(message.OrderId), context.CancellationToken);
+            await _publishEndpoint.Publish(new OrderPaymentSucceeded(message.OrderId), context.CancellationToken);
         }
         catch (InvalidOperationException ex)
         {
@@ -48,7 +52,7 @@ public class OrderPaymentRequestConsumer(IAccountRepository accountRepository, I
                 "Payment failed for OrderId: {OrderId}. Reason: Insufficient funds.",
                 message.OrderId);
 
-            await publishEndpoint.Publish(new OrderPaymentFailed(message.OrderId, ex.Message), context.CancellationToken);
+            await _publishEndpoint.Publish(new OrderPaymentFailed(message.OrderId, ex.Message), context.CancellationToken);
         }
     }
 }
