@@ -1,12 +1,10 @@
 services:
 
   apigateway:
-    image:
-      name: apigateway
-      tag: latest
+    image: apigateway
     container_name: apigateway
     build:
-      context: ./APIGateway
+      context: .
       dockerfile: APIGateway/Dockerfile
     ports:
       - "${API_GATEWAY_PORT}:80"
@@ -24,12 +22,10 @@ services:
     restart: on-failure
 
   ordersservice:
-    image:
-      name: ordersservice
-      tag: latest
+    image: ordersservice
     container_name: ordersservice
     build:
-      context: ./OrdersService
+      context: .
       dockerfile: OrdersService/Dockerfile
     ports:
       - "${ORDERS_SERVICE_PORT:-5002}:80"
@@ -51,12 +47,10 @@ services:
     restart: on-failure
 
   paymentsservice:
-    image:
-      name: paymentsservice
-      tag: latest
+    image: paymentsservice
     container_name: paymentsservice
     build:
-      context: ./PaymentsService
+      context: .
       dockerfile: PaymentsService/Dockerfile
     ports:
       - "${PAYMENTS_SERVICE_PORT:-5001}:80"
