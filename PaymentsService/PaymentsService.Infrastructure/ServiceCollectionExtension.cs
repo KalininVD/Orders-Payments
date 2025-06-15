@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using PaymentsService.Application.Abstractions;
+using PaymentsService.Infrastructure.Repositories;
 
 namespace PaymentsService.Infrastructure;
 
@@ -10,15 +12,12 @@ public static class ServiceCollectionExtension
     {
         var connectionString = configuration.GetConnectionString("PostgreSQL");
 
-        if (string.IsNullOrEmpty(connectionString))
-        {
-            throw new InvalidOperationException("Connection string 'PostgreSQL' is missing.");
-        }
+        services.AddDbContext<PaymentsDbContext>(options =>
+            options.UseNpgsql(connectionString));
+        
+        services.AddScoped<IAccountRepository, PostgresAccountRepository>();
 
-        connectionString = Environment.ExpandEnvironmentVariables(connectionString);
-
-        services.AddDbContext<PaymentsDbContext>(
-            options => options.UseNpgsql(connectionString));
+        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<PaymentsDbContext>());
 
         return services;
     }
