@@ -6,6 +6,12 @@ namespace PaymentsService.Web.Middleware;
 
 public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
 {
+    private static readonly JsonSerializerOptions _serializerOptions = new()
+    {
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
     public async Task InvokeAsync(HttpContext context)
     {
         try
@@ -27,19 +33,13 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
         response.StatusCode = (int)HttpStatusCode.InternalServerError;
         var errorMessage = "An internal server error has occurred";
 
-        var serializerOptions = new JsonSerializerOptions
-        {
-            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        };
-
         switch (exception)
         {
             case FluentValidation.ValidationException validationException:
                 response.StatusCode = (int)HttpStatusCode.BadRequest;
 
                 var errors = validationException.Errors.Select(e => new { e.PropertyName, e.ErrorMessage });
-                var validationErrorResponse = JsonSerializer.Serialize(new { errors }, serializerOptions);
+                var validationErrorResponse = JsonSerializer.Serialize(new { errors }, _serializerOptions);
                 await response.WriteAsync(validationErrorResponse);
 
                 return;
