@@ -1,10 +1,17 @@
 using System.Net;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 
 namespace OrdersService.Web.Middleware;
 
 public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
 {
+    private static readonly JsonSerializerOptions _serializerOptions = new()
+    {
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
     public async Task InvokeAsync(HttpContext context)
     {
         try
@@ -32,10 +39,15 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
                 response.StatusCode = (int)HttpStatusCode.BadRequest;
 
                 var errors = validationException.Errors.Select(e => new { e.PropertyName, e.ErrorMessage });
-                var validationErrorResponse = JsonSerializer.Serialize(new { errors });
+                var validationErrorResponse = JsonSerializer.Serialize(new { errors }, _serializerOptions);
                 await response.WriteAsync(validationErrorResponse);
 
                 return;
+
+            case ArgumentOutOfRangeException or ArgumentException:
+                response.StatusCode = (int)HttpStatusCode.BadRequest;
+                errorMessage = exception.Message;
+                break;
 
             case InvalidOperationException when exception.Message.Contains("already exists"):
                 response.StatusCode = (int)HttpStatusCode.Conflict;
