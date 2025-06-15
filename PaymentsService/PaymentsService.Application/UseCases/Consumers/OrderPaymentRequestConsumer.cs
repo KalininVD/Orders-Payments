@@ -21,6 +21,10 @@ public class OrderPaymentRequestConsumer(IAccountRepository accountRepository, I
             "Received payment request for OrderId: {OrderId}, UserId: {UserId}, Amount: {Amount}",
             message.OrderId, message.UserId, message.Amount);
 
+        _logger.LogDebug("Simulating payment processing delay for 30 seconds...");
+
+        await Task.Delay(TimeSpan.FromSeconds(30), context.CancellationToken);
+
         var account = await _accountRepository.GetByUserIdAsync(message.UserId, context.CancellationToken);
 
         if (account is null)
