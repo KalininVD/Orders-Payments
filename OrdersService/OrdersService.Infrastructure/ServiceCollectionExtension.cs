@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using OrdersService.Application.Abstractions;
 using OrdersService.Infrastructure.Repositories;
 using OrdersService.Infrastructure.Options;
+using OrdersService.Application.UseCases.Consumers;
 using MassTransit;
 
 namespace OrdersService.Infrastructure;
@@ -29,6 +30,9 @@ public static class ServiceCollectionExtension
 
         services.AddMassTransit(busConfigurator =>
         {
+            busConfigurator.AddConsumer<OrderPaymentSucceededConsumer>();
+            busConfigurator.AddConsumer<OrderPaymentFailedConsumer>();
+
             busConfigurator.AddEntityFrameworkOutbox<OrdersDbContext>(outboxConfigurator =>
             {
                 outboxConfigurator.UsePostgres();
@@ -46,6 +50,8 @@ public static class ServiceCollectionExtension
                     h.Username(options.User);
                     h.Password(options.Password);
                 });
+
+                mqConfigurator.ConfigureEndpoints(context);
             });
         });
 
