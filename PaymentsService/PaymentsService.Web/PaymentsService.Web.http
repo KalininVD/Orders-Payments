@@ -1,1 +1,57 @@
-@PaymentsService_Host = http://localhost:5001
+### PaymentsService API Tests ###
+
+@paymentsHost = http://localhost:5001
+@userId = 3fa85f64-5717-4562-b3fc-2c963f66afa6
+
+###
+POST {{paymentsHost}}/api/accounts
+Content-Type: application/json
+
+{
+  "userId": "{{userId}}"
+}
+
+###
+POST {{paymentsHost}}/api/accounts
+Content-Type: application/json
+
+{
+  "userId": "{{userId}}"
+}
+
+###
+POST {{paymentsHost}}/api/accounts/deposit
+Content-Type: application/json
+
+{
+  "userId": "{{userId}}",
+  "amount": 150.75
+}
+
+###
+POST {{paymentsHost}}/api/accounts/deposit
+Content-Type: application/json
+
+{
+  "userId": "00000000-0000-0000-0000-000000000001",
+  "amount": 100.00
+}
+
+
+###
+POST {{paymentsHost}}/api/accounts/deposit
+Content-Type: application/json
+
+{
+  "userId": "{{userId}}",
+  "amount": -50.00
+}
+
+###
+GET {{paymentsHost}}/api/accounts/user/{{userId}}
+
+###
+GET {{paymentsHost}}/api/accounts/user/00000000-0000-0000-0000-000000000001
+
+###
+GET {{paymentsHost}}/api/accounts/42f3fee8-8c78-4d4e-b869-67a39ca2d840
