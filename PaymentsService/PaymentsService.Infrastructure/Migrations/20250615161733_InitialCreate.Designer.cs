@@ -2,18 +2,21 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using OrdersService.Infrastructure;
+using PaymentsService.Infrastructure;
 
 #nullable disable
 
-namespace OrdersService.Infrastructure.Migrations
+namespace PaymentsService.Infrastructure.Migrations
 {
-    [DbContext(typeof(OrdersDbContext))]
-    partial class OrdersDbContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(PaymentsDbContext))]
+    [Migration("20250615161733_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -190,31 +193,22 @@ namespace OrdersService.Infrastructure.Migrations
                     b.ToTable("OutboxState");
                 });
 
-            modelBuilder.Entity("OrdersService.Domain.Entities.Order", b =>
+            modelBuilder.Entity("PaymentsService.Domain.Entities.Account", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(16, 2)");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
+                    b.Property<decimal>("Balance")
+                        .HasColumnType("decimal(18, 2)");
 
                     b.Property<Guid>("UserId")
+                        .HasMaxLength(50)
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Orders");
+                    b.ToTable("accounts", (string)null);
                 });
 
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.OutboxMessage", b =>

@@ -5,14 +5,14 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using PaymentsService.Infrastructure;
+using OrdersService.Infrastructure;
 
 #nullable disable
 
-namespace PaymentsService.Infrastructure.Migrations
+namespace OrdersService.Infrastructure.Migrations
 {
-    [DbContext(typeof(PaymentsDbContext))]
-    [Migration("20250615154512_InitialCreate")]
+    [DbContext(typeof(OrdersDbContext))]
+    [Migration("20250615161718_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -193,22 +193,31 @@ namespace PaymentsService.Infrastructure.Migrations
                     b.ToTable("OutboxState");
                 });
 
-            modelBuilder.Entity("PaymentsService.Domain.Entities.Account", b =>
+            modelBuilder.Entity("OrdersService.Domain.Entities.Order", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<decimal>("Balance")
-                        .HasColumnType("decimal(18, 2)");
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(16, 2)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
 
                     b.Property<Guid>("UserId")
-                        .HasMaxLength(50)
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
-                    b.ToTable("accounts", (string)null);
+                    b.ToTable("Orders");
                 });
 
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.OutboxMessage", b =>

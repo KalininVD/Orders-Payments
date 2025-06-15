@@ -8,18 +8,16 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
 {
     public void Configure(EntityTypeBuilder<Order> builder)
     {
-        builder.ToTable("orders");
-
         builder.HasKey(o => o.Id);
 
         builder.Property(o => o.Amount)
-            .HasColumnType("decimal(18, 2)");
+            .HasColumnType("decimal(16, 2)");
 
         builder.Property(o => o.Description)
-            .HasMaxLength(500);
+            .HasMaxLength(512);
 
         builder.Property(o => o.Status)
             .HasConversion<string>()
-            .HasMaxLength(50);
+            .HasMaxLength(64);
     }
 }
