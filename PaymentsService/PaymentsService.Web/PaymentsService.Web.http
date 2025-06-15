@@ -77,4 +77,4 @@ GET {{paymentsHost}}/api/accounts/user/00000000-0000-0000-0000-000000000001
 ###
 # Получение информации о счете по его собственному ID
 # Ожидаемый ответ: 200 OK
-GET {{paymentsHost}}/api/accounts/4db69e11-60fb-484f-8568-b1109414953c
+GET {{paymentsHost}}/api/accounts/fd8ad505-7156-45cc-a09f-11db71ce3c97

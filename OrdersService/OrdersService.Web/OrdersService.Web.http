@@ -26,7 +26,7 @@ GET {{ordersHost}}/api/orders?userId={{userId}}
 ###
 # Получение конкретного заказа по его ID
 # Ожидаемый ответ: 200 OK с данными заказа.
-GET {{ordersHost}}/api/orders/2ad62757-3727-462d-9bc4-fd858fbb137b
+GET {{ordersHost}}/api/orders/f54e405f-c520-4347-9b34-e742f14e3e12
 
 
 ###
@@ -38,7 +38,7 @@ GET {{ordersHost}}/api/orders/00000000-0000-0000-0000-000000000000
 ###
 # Отмена заказа
 # Ожидаемый ответ: 204 NoContent
-PATCH {{ordersHost}}/api/orders/80b1a543-e1a8-494c-918e-71719c410361/cancel
+PATCH {{ordersHost}}/api/orders/f54e405f-c520-4347-9b34-e742f14e3e12/cancel
 
 
 ###
