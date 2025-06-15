@@ -6,7 +6,7 @@ using PaymentsService.Application.UseCases.GetAccountById;
 namespace PaymentsService.Web.Controllers;
 
 [ApiController]
-[Route("api/payments")]
+[Route("api/accounts")]
 public class PaymentController(IMediator mediator) : ControllerBase
 {
     private readonly IMediator _mediator = mediator;
