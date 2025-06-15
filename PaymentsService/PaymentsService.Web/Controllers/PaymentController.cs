@@ -2,6 +2,8 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using PaymentsService.Application.UseCases.CreateAccount;
 using PaymentsService.Application.UseCases.GetAccountById;
+using PaymentsService.Application.UseCases.DepositFunds;
+using PaymentsService.Application.UseCases.GetAccountByUserId;
 
 namespace PaymentsService.Web.Controllers;
 
@@ -27,5 +29,23 @@ public class PaymentController(IMediator mediator) : ControllerBase
         var account = await _mediator.Send(query);
 
         return account is not null ? Ok(account) : NotFound();
+    }
+
+    [HttpGet("user/{userId:guid}")]
+    public async Task<IActionResult> GetAccountByUserId(Guid userId)
+    {
+        var query = new GetAccountByUserIdQuery(userId);
+
+        var account = await _mediator.Send(query);
+
+        return account is not null ? Ok(account) : NotFound();
+    }
+
+    [HttpPost("deposit")]
+    public async Task<IActionResult> DepositFunds([FromBody] DepositFundsCommand command)
+    {
+        await _mediator.Send(command);
+
+        return Ok(new { message = $"Successfully deposited {command.Amount} for user {command.UserId}" });
     }
 }
