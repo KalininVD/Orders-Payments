@@ -1,3 +1,5 @@
+using MassTransit;
+using MassTransit.EntityFrameworkCoreIntegration;
 using Microsoft.EntityFrameworkCore;
 using PaymentsService.Domain.Entities;
 using PaymentsService.Application.Abstractions;
@@ -8,10 +10,18 @@ public class PaymentsDbContext(DbContextOptions<PaymentsDbContext> options) : Db
 {
     public DbSet<Account> Accounts { get; set; }
 
+    public DbSet<InboxState> InboxState { get; set; }
+    public DbSet<OutboxMessage> OutboxMessage { get; set; }
+    public DbSet<OutboxState> OutboxState { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(PaymentsDbContext).Assembly);
-        modelBuilder.HasDefaultSchema("payments");
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.AddInboxStateEntity();
+        modelBuilder.AddOutboxMessageEntity();
+        modelBuilder.AddOutboxStateEntity();
+
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(PaymentsDbContext).Assembly);
     }
 }
