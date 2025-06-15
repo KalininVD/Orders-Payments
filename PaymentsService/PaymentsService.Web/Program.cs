@@ -30,11 +30,6 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    
-    app.UseSwaggerUI(options =>
-    {
-        options.DocumentTitle = "Payments Service - Swagger UI";
-    });
 }
 
 app.MapControllers();
