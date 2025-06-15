@@ -5,14 +5,14 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using OrdersService.Infrastructure;
+using PaymentsService.Infrastructure;
 
 #nullable disable
 
-namespace OrdersService.Infrastructure.Migrations
+namespace PaymentsService.Infrastructure.Migrations
 {
-    [DbContext(typeof(OrdersDbContext))]
-    [Migration("20250615181929_InitialCreate")]
+    [DbContext(typeof(PaymentsDbContext))]
+    [Migration("20250615193912_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -193,31 +193,21 @@ namespace OrdersService.Infrastructure.Migrations
                     b.ToTable("OutboxState");
                 });
 
-            modelBuilder.Entity("OrdersService.Domain.Entities.Order", b =>
+            modelBuilder.Entity("PaymentsService.Domain.Entities.Account", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<decimal>("Amount")
+                    b.Property<decimal>("Balance")
                         .HasColumnType("decimal(16, 2)");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Orders");
+                    b.ToTable("Accounts");
                 });
 
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.OutboxMessage", b =>
