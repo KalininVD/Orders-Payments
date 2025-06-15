@@ -1,9 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using OrdersService.Domain.Entities;
+using OrdersService.Application.Abstractions;
 
 namespace OrdersService.Infrastructure;
 
-public class OrdersDbContext(DbContextOptions<OrdersDbContext> options) : DbContext(options)
+public class OrdersDbContext(DbContextOptions<OrdersDbContext> options) : DbContext(options), IUnitOfWork
 {
     public DbSet<Order> Orders { get; set; }
 

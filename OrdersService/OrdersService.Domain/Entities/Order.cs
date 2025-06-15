@@ -21,7 +21,7 @@ public class Order
         Id = id;
         UserId = userId;
         Amount = amount;
-        Description = description;
+        Description = description ?? string.Empty;
         Status = StatusEnum.New;
     }
 
