@@ -12,8 +12,8 @@ using PaymentsService.Infrastructure;
 namespace PaymentsService.Infrastructure.Migrations
 {
     [DbContext(typeof(PaymentsDbContext))]
-    [Migration("20250615153801_AddMassTransitInboxOutbox")]
-    partial class AddMassTransitInboxOutbox
+    [Migration("20250615154512_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

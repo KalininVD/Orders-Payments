@@ -7,15 +7,23 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace PaymentsService.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class AddMassTransitInboxOutbox : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.RenameTable(
+            migrationBuilder.CreateTable(
                 name: "accounts",
-                schema: "payments",
-                newName: "accounts");
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", maxLength: 50, nullable: false),
+                    Balance = table.Column<decimal>(type: "numeric(18,2)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_accounts", x => x.Id);
+                });
 
             migrationBuilder.CreateTable(
                 name: "InboxState",
@@ -135,6 +143,9 @@ namespace PaymentsService.Infrastructure.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "accounts");
+
+            migrationBuilder.DropTable(
                 name: "OutboxMessage");
 
             migrationBuilder.DropTable(
@@ -142,14 +153,6 @@ namespace PaymentsService.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "OutboxState");
-
-            migrationBuilder.EnsureSchema(
-                name: "payments");
-
-            migrationBuilder.RenameTable(
-                name: "accounts",
-                newName: "accounts",
-                newSchema: "payments");
         }
     }
 }
