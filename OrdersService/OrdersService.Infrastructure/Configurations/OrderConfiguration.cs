@@ -14,10 +14,10 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
             .HasColumnType("decimal(16, 2)");
 
         builder.Property(o => o.Description)
-            .HasMaxLength(512);
+            .HasMaxLength(256);
 
         builder.Property(o => o.Status)
             .HasConversion<string>()
-            .HasMaxLength(64);
+            .HasMaxLength(32);
     }
 }

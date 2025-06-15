@@ -15,6 +15,6 @@ public class CreateOrderCommandValidator : AbstractValidator<CreateOrderCommand>
 
         RuleFor(x => x.Description)
             .NotEmpty()
-            .MaximumLength(200);
+            .MaximumLength(256);
     }
 }

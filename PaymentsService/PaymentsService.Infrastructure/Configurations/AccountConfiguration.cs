@@ -8,14 +8,9 @@ public class AccountConfiguration : IEntityTypeConfiguration<Account>
 {
     public void Configure(EntityTypeBuilder<Account> builder)
     {
-        builder.ToTable("accounts");
-
         builder.HasKey(a => a.Id);
 
         builder.Property(a => a.Balance)
-            .HasColumnType("decimal(18, 2)");
-
-        builder.Property(a => a.UserId)
-            .HasMaxLength(50);
+            .HasColumnType("decimal(16, 2)");
     }
 }

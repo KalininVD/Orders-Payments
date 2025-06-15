@@ -11,6 +11,6 @@ public class DepositFundsCommandValidator : AbstractValidator<DepositFundsComman
 
         RuleFor(x => x.Amount)
             .GreaterThan(0)
-            .WithMessage("Deposit amount must be positive.");
+            .WithMessage("Deposit amount must be positive!");
     }
 }
