@@ -42,6 +42,11 @@ public class Order
             throw new InvalidOperationException("Cannot cancel a finished order!");
         }
 
+        if (Status == StatusEnum.Cancelled)
+        {
+            throw new InvalidOperationException("Order is already cancelled!");
+        }
+
         Status = StatusEnum.Cancelled;
     }
 }
