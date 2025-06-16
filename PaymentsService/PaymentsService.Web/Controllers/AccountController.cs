@@ -9,7 +9,7 @@ namespace PaymentsService.Web.Controllers;
 
 [ApiController]
 [Route("api/accounts")]
-public class PaymentController(IMediator mediator) : ControllerBase
+public class AccountController(IMediator mediator) : ControllerBase
 {
     private readonly IMediator _mediator = mediator;
 
