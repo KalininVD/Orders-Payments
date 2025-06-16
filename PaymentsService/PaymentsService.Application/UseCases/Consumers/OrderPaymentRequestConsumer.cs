@@ -5,11 +5,12 @@ using Shared.Contracts.OrderEvents;
 
 namespace PaymentsService.Application.UseCases.Consumers;
 
-public class OrderPaymentRequestConsumer(IAccountRepository accountRepository, IUnitOfWork unitOfWork, IPublishEndpoint publishEndpoint, ILogger<OrderPaymentRequestConsumer> logger) : IConsumer<OrderPaymentRequest>
+public class OrderPaymentRequestConsumer(IAccountRepository accountRepository, IUnitOfWork unitOfWork, IPublishEndpoint publishEndpoint, IDelayProvider delayProvider, ILogger<OrderPaymentRequestConsumer> logger) : IConsumer<OrderPaymentRequest>
 {
     private readonly IAccountRepository _accountRepository = accountRepository;
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
     private readonly IPublishEndpoint _publishEndpoint = publishEndpoint;
+    private readonly IDelayProvider _delayProvider = delayProvider;
 
     private readonly ILogger<OrderPaymentRequestConsumer> _logger = logger;
 
@@ -23,7 +24,7 @@ public class OrderPaymentRequestConsumer(IAccountRepository accountRepository, I
 
         _logger.LogDebug("Simulating payment processing delay for 30 seconds...");
 
-        await Task.Delay(TimeSpan.FromSeconds(30), context.CancellationToken);
+        await _delayProvider.Delay(TimeSpan.FromSeconds(30), context.CancellationToken);
 
         var account = await _accountRepository.GetByUserIdAsync(message.UserId, context.CancellationToken);
 

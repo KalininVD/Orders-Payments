@@ -7,6 +7,7 @@ using PaymentsService.Application.Abstractions;
 using PaymentsService.Infrastructure.Repositories;
 using PaymentsService.Infrastructure.Options;
 using PaymentsService.Application.UseCases.Consumers;
+using PaymentsService.Infrastructure.Services;
 
 namespace PaymentsService.Infrastructure;
 
@@ -27,6 +28,8 @@ public static class ServiceCollectionExtension
         services.AddScoped<IAccountRepository, PostgresAccountRepository>();
 
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<PaymentsDbContext>());
+
+        services.AddSingleton<IDelayProvider, DefaultDelayProvider>();
 
         services.AddMassTransit(busConfigurator =>
         {
