@@ -1,4 +1,3 @@
-using Yarp.ReverseProxy.Swagger.Extensions;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -6,8 +5,7 @@ var builder = WebApplication.CreateBuilder(args);
 var reverseProxyConfig = builder.Configuration.GetSection("ReverseProxy");
 
 builder.Services.AddReverseProxy()
-    .LoadFromConfig(reverseProxyConfig)
-    .AddSwagger(reverseProxyConfig);
+    .LoadFromConfig(reverseProxyConfig);
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -18,22 +16,24 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+app.MapReverseProxy();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
 
     app.UseSwaggerUI(c =>
     {
-        foreach (var endpoint in app.Configuration.GetSection("ReverseProxy:Swagger:Endpoints").GetChildren())
-        {
-            var key = endpoint.GetValue<string>("Key");
-            var name = endpoint.GetValue<string>("Name");
+        var endpoints = app.Configuration.GetSection("ReverseProxy:Swagger:Endpoints").GetChildren();
 
-            c.SwaggerEndpoint($"/swagger/{key}/swagger.json", name);
+        foreach (var endpoint in endpoints)
+        {
+            var name = endpoint.GetValue<string>("Name");
+            var path = endpoint.GetValue<string>("Path");
+
+            c.SwaggerEndpoint(path, name);
         }
     });
 }
-
-app.MapReverseProxy();
 
 app.Run();

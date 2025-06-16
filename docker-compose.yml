@@ -12,13 +12,15 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:80
       - API_PORT=80
-      - ReverseProxy__Clusters__orders__Destinations__orders__Address=http://ordersservice:80
-      - ReverseProxy__Clusters__payments__Destinations__payments__Address=http://paymentsservice:80
+      - ReverseProxy__Clusters__orders-cluster__Destinations__orders-destination__Address=http://ordersservice:80
+      - ReverseProxy__Clusters__payments-cluster__Destinations__payments-destination__Address=http://paymentsservice:80
     networks:
       - orders_payments_network
     depends_on:
-      - paymentsservice
-      - ordersservice
+      paymentsservice:
+        condition: service_started
+      ordersservice:
+        condition: service_started
     restart: on-failure
 
   ordersservice:
@@ -100,8 +102,8 @@ services:
     restart: on-failure
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${ORDERS_SERVICE_POSTGRES_USER} -d ${ORDERS_SERVICE_POSTGRES_DB_NAME}"]
-      interval: 10s
-      timeout: 5s
+      interval: 5s
+      timeout: 2s
       retries: 5
 
   paymentsservicepostgres:
@@ -120,8 +122,8 @@ services:
     restart: on-failure
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${PAYMENTS_SERVICE_POSTGRES_USER} -d ${PAYMENTS_SERVICE_POSTGRES_DB_NAME}"]
-      interval: 10s
-      timeout: 5s
+      interval: 5s
+      timeout: 2s
       retries: 5
 
 networks:
