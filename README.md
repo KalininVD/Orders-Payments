@@ -2,63 +2,87 @@
 
 ## Overview
 
-This project is an implementation of a backend API system with two main services:
+This project is an implementation of a distributed backend system featuring two core microservices: **Payments Service** and **Orders Service**. The system is designed to handle the creation and payment processing of customer orders in a reliable and scalable manner.
 
-- Payments Service
-  - Responsible for managing accounts and their funds
-- Orders Service
-  - Responsible for managing orders and their statuses
+-   **Payments Service:** Responsible for managing user accounts, balances, and processing deposits.
+-   **Orders Service:** Responsible for managing the lifecycle of orders, from creation to completion or cancellation.
 
-Both services assume that there is an external service for managing users and `user_id` property is passed to both services as a known parameter.
+All communication from the outside world is routed through a dedicated **API Gateway**, which acts as a single entry point to the system. The project assumes the existence of an external user management service, and `user_id` is passed as a known parameter.
 
-For a controlled access to the API, there is a reverse proxy project `API Gateway` that is responsible for routing requests to the appropriate services. In the future it will be upgraded to support load balancing and managing multiple instances of each service.
+## Supported API Endpoints
 
-## Supported API endpoints
+The API is accessible through the API Gateway.
 
-### Payments Service
+### Payments Service (`/api/accounts`)
 
-- `POST /api/accounts` - Create a new account with zero balance
-- `GET /api/accounts/{id}` - Get account by ID
-- `GET /api/accounts/user/{userId}` - Get account by user ID
-- `POST /api/accounts/deposit` - Deposit funds to an account
+-   `POST /api/accounts`: Create a new account for a user with a zero balance.
+-   `POST /api/accounts/deposit`: Deposit funds into a user's account.
+-   `GET /api/accounts/{id}`: Get account details by its unique ID.
+-   `GET /api/accounts/user/{userId}`: Get account details by the user's ID.
 
-### Orders Service
+### Orders Service (`/api/orders`)
 
-- `POST /api/orders` - Create a new order and start its payment process
-- `GET /api/orders/{id}` - Get order by its ID (including its status)
-- `GET /api/orders/user/{userId}` - See all orders for a specific user
-- `PATCH /api/orders/{id}/cancel` - Cancel an order by its ID (if it is not already cancelled or finished)
+-   `POST /api/orders`: Create a new order, which asynchronously triggers the payment process.
+-   `GET /api/orders`: Get a list of all orders for a specific user.
+-   `GET /api/orders/{id}`: Get the details and current status of a specific order.
+-   `PATCH /api/orders/{id}/cancel`: Cancel an order by its ID (if it has not been completed or already cancelled).
 
-## Asynchronous communication
+## Asynchronous Communication Flow
 
-Since the order is created in `NEW` status, it needs to be confirmed by the payment service to become `FINISHED`. So after the order is created, `Orders Service` sends a request to `Payments Service` to try to withdraw money from the account linked to `user_id`. In case of success, the order status is changed to `FINISHED`, otherwise it is changed to `CANCELLED` (if the account has less funds than the order amount or the specified user does not have an account).
+The core business process of creating and paying for an order is fully asynchronous to ensure system resilience and responsiveness:
 
-## Requirements to run locally
+1.  A client sends a `POST` request to the `Orders Service` to create an order. The order is immediately created with a `NEW` status.
+2.  The `Orders Service` atomically saves the new order and publishes an `OrderPaymentRequest` message to a **RabbitMQ** message broker.
+3.  The `Payments Service` consumes this message, finds the user's account, and attempts to withdraw the required amount.
+4.  Based on the outcome, the `Payments Service` publishes a corresponding event: `OrderPaymentSucceeded` or `OrderPaymentFailed`.
+5.  The `Orders Service` consumes the result event and updates the order's status to `FINISHED` or `CANCELLED`, thus completing the cycle.
 
-0. Install Docker (Docker Desktop is recommended)
-1. Clone the repository
-2. Copy `.env.example` and rename it to `.env`, change the values to your needs
-3. Run `docker compose up --build -d` in the root directory, wait for all containers to start
-4. To see Swagger UI, open `http://localhost:8080/swagger` in your browser (make sure to use appropriate port)
-5. Or use HTTP file inside `APIGateway` directory to test the API by manually sending requests (in VS Code you should install the `REST Client` extension)
+## How to Run
 
-## Microservices architecture
+### Prerequisites
 
-Both microservices (`Payments Service` and `Orders Service`) are implemented in C# using .NET 9. Main used patterns include Clean Architecture, CQRS and Domain-Driven Design (Rich Domain Model). Both services consist of four layers as projects within a single .NET solution:
+-   Docker and Docker Compose (Docker Desktop is recommended).
+-   A `.env` file for configuration.
 
-- Domain layer
-  - Contains the domain entities and their logic
-  - Rich Domain Model - domain objects check the business rules by themselves
-- Application layer
-  - Contains the application logic, including all realizations for known use cases
-  - CQRS pattern for each use case - commands and queries are separated and handled by their own handler
-  - For commands there are Validators for checking data correctness before trying to execute the command with real data access
-- Infrastructure layer
-  - Contains the implementation of Entity Framework Core DB context to save entities to the database (PostgreSQL is used in this project)
-  - Configuration for RabbitMQ, used for message communication between services
-- Web API
-  - Controllers for handling HTTP requests on the API endpoints
-  - Matching HTTP requests to the corresponding use cases
-  - Middleware for handling exceptions and logging
+### Steps
 
-For the ability to send and receive messages from other services, there is an additional project `Shared` containing `Contracts` folder with specific record classes indicating the status of the operation performed by the service. In the case of `Payments Service`, it returns the status of the payment operation: if money was successfully withdrawn from the account, `Orders Service` will change the order status to `FINISHED`, otherwise (if the account does not exist or does not have enough funds) the order will be cancelled - that is `Orders Service` responsibility.
+1.  Clone the repository.
+2.  Create a `.env` file in the root directory by copying `.env.example`. Adjust the values if necessary.
+3.  Run the following command from the root directory:
+    ```bash
+    docker-compose up --build -d
+    ```
+4.  Wait for all containers to start. The system is now running.
+5.  To interact with the API, open the unified Swagger UI hosted on the API Gateway: **`http://localhost:8080/swagger`** (use the port you configured in `.env`).
+6.  Alternatively, you can use the `.http` files in each service's `Web` project or the `APIGateway` project to send requests directly from your IDE (e.g., VS Code with the REST Client extension or JetBrains Rider).
+
+## Architecture & Design Patterns
+
+The system is built upon a modern, robust set of architectural principles and design patterns to ensure scalability, maintainability, and reliability.
+
+### High-Level Architecture
+
+-   **Microservices Architecture:** The system is decomposed into independent, deployable services (`OrdersService`, `PaymentsService`) with a single point of entry via an **API Gateway** (implemented with YARP).
+-   **Database-per-Service:** Each microservice has its own private PostgreSQL database, ensuring loose coupling and independent data management.
+
+### Core Application Design
+
+-   **Clean Architecture:** Each service follows a strict separation of concerns, with dependencies directed inwards. This isolates business logic from external frameworks and technologies.
+    -   **Domain Layer:** Contains rich domain entities (`Order`, `Account`) that encapsulate business rules and protect their own state (invariants). This follows the **Domain-Driven Design (DDD)** principle of a Rich Domain Model.
+    -   **Application Layer:** Orchestrates the use cases of the application. It is built upon the **CQRS (Command Query Responsibility Segregation)** pattern, using **MediatR** to separate commands (state-changing operations) from queries (data-retrieval operations).
+    -   **Infrastructure Layer:** Contains implementations for external concerns, such as database access (**Repository Pattern** and **Unit of Work Pattern** with Entity Framework Core) and message bus integration.
+    -   **Web API Layer:** The entry point for external requests, containing thin controllers that delegate all work to the Application Layer.
+
+### Reliability and Messaging Patterns
+
+To ensure data consistency and reliable communication in a distributed environment, the project heavily relies on advanced messaging patterns implemented with **MassTransit** and **RabbitMQ**.
+
+-   **Transactional Outbox:** This pattern guarantees that a message is sent to the message broker **if and only if** the corresponding database transaction is successfully committed. When an order is created, the `Order` entity and the `OrderPaymentRequest` message are saved atomically. This prevents scenarios where an order is saved but the payment request is never sent.
+-   **Transactional Inbox (Idempotent Consumers):** This pattern ensures that incoming messages are processed **exactly once**. MassTransit uses an `InboxState` table to track received messages. If a message is delivered more than once (e.g., due to a network issue), the consumer will process it only the first time, preventing duplicate operations like charging a customer twice for the same order.
+-   **At-Most-Once / Exactly-Once Semantics:** The combination of the Transactional Outbox and Inbox patterns effectively achieves **exactly-once** message processing, fulfilling and exceeding the project requirements.
+
+### Other Implemented Patterns
+
+-   **Options Pattern:** For strongly-typed, safe, and validated application configuration.
+-   **Custom Middleware:** For centralized, uniform exception handling across the API.
+-   **Dependency Injection:** Extensively used throughout the application to achieve loose coupling and high testability.
