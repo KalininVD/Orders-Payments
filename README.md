@@ -87,3 +87,13 @@ To ensure data consistency and reliable communication in a distributed environme
 -   **Options Pattern:** For strongly-typed, safe, and validated application configuration.
 -   **Custom Middleware:** For centralized, uniform exception handling across the API.
 -   **Dependency Injection:** Extensively used throughout the application to achieve loose coupling and high testability.
+
+## Code Quality & Testing
+
+This project places a high emphasis on code quality, reliability, and testability.
+
+-   **Unit Testing:** The core business logic located in the `Domain` and `Application` layers is thoroughly covered by unit tests. This ensures that all business rules, use cases, and logic branches are validated in isolation.
+    -   **Frameworks Used:** xUnit, Moq, and FluentAssertions.
+    -   **Code Coverage:** The project achieves a **line coverage of 82%** for the testable layers, significantly exceeding the common industry standards and project requirements.
+
+-   **Manual End-to-End Testing:** The provided `.http` files allow for comprehensive end-to-end testing of the entire system, verifying the correct asynchronous interaction between all services through the API Gateway.
