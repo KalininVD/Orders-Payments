@@ -1,1 +1,112 @@
-@ApiGatewayHost = http://localhost:8080
+### API Gateway - Full End-to-End Tests ###
+
+@apiGatewayHost = http://localhost:8080
+@userId = 3fa85f64-5717-4562-b3fc-2c963f66afa6
+
+###
+# ======================================================
+# Сценарий 1: Успешная покупка
+# ======================================================
+
+###
+# 1.1. Создаем счет для пользователя через Gateway
+# Запрос идет на -> /api/accounts -> PaymentsService
+POST {{apiGatewayHost}}/api/accounts
+Content-Type: application/json
+
+{
+  "userId": "{{userId}}"
+}
+
+###
+# 1.2. Пополняем счет на 100 у.е.
+# Запрос идет на -> /api/accounts/deposit -> PaymentsService
+POST {{apiGatewayHost}}/api/accounts/deposit
+Content-Type: application/json
+
+{
+  "userId": "{{userId}}",
+  "amount": 100.00
+}
+
+
+###
+# 1.3. Создаем заказ на 75 у.е.
+# Запрос идет на -> /api/orders -> OrdersService
+# В ответе в заголовке Location будет ссылка на созданный заказ.
+# Ожидаемый ответ: 201 Created
+POST {{apiGatewayHost}}/api/orders
+Content-Type: application/json
+
+{
+  "userId": "{{userId}}",
+  "amount": 75.00,
+  "description": "Покупка через API Gateway"
+}
+
+
+###
+# 1.4. Проверяем статус заказа через несколько секунд
+# Этот запрос нужно выполнить через 30 секунд после создания заказа (отладочная задержка).
+# Чтобы он сработал, нужно скопировать ID из ответа на предыдущий запрос.
+# Ожидаемый ответ: 200 OK со статусом "Finished"
+GET {{apiGatewayHost}}/api/orders/<ID_ЗАКАЗА>
+
+
+###
+# 1.5. Проверяем баланс счета пользователя
+# Ожидаемый ответ: 200 OK. Баланс должен уменьшиться на 75 (стать 25).
+GET {{apiGatewayHost}}/api/accounts/user/{{userId}}
+
+
+###
+# ======================================================
+# Сценарий 2: Недостаточно средств
+# ======================================================
+
+###
+# 2.1. Создаем еще один заказ на 30 у.е. (на счете осталось только 25)
+# Ожидаемый ответ: 201 Created
+POST {{apiGatewayHost}}/api/orders
+Content-Type: application/json
+
+{
+  "userId": "{{userId}}",
+  "amount": 30.00,
+  "description": "Попытка купить то, на что не хватает денег"
+}
+
+###
+# 2.2. Проверяем статус второго заказа через 30 секунд
+# Ожидаемый ответ: 200 OK со статусом "Cancelled"
+GET {{apiGatewayHost}}/api/orders/<ID_ЗАКАЗА>
+
+
+###
+# ======================================================
+# Сценарий 3: Отмена заказа пользователем (гонка состояний)
+# ======================================================
+
+###
+# 3.1. Создаем третий заказ
+# Ожидаемый ответ: 201 Created
+POST {{apiGatewayHost}}/api/orders
+Content-Type: application/json
+
+{
+  "userId": "{{userId}}",
+  "amount": 10.00,
+  "description": "Заказ, который мы отменим"
+}
+
+###
+# 3.2. БЫСТРО (в течение 30 секунд) отменяем этот заказ
+# Чтобы этот запрос сработал, нужно скопировать ID из ответа на предыдущий запрос.
+# Ожидаемый ответ: 204 NoContent
+PATCH {{apiGatewayHost}}/api/orders/<ID_ЗАКАЗА>/cancel
+
+
+###
+# 3.3. Проверяем статус отмененного заказа
+# Ожидаемый ответ: 200 OK со статусом "Cancelled"
+GET {{apiGatewayHost}}/api/orders/<ID_ЗАКАЗА>
