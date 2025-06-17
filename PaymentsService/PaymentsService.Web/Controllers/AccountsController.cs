@@ -31,8 +31,8 @@ public class AccountsController(IMediator mediator) : ControllerBase
         return account is not null ? Ok(account) : NotFound();
     }
 
-    [HttpGet("user/{userId:guid}")]
-    public async Task<IActionResult> GetAccountByUserId(Guid userId)
+    [HttpGet]
+    public async Task<IActionResult> GetAccountByUserId([FromQuery] Guid userId)
     {
         var query = new GetAccountByUserIdQuery(userId);
 

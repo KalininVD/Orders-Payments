@@ -65,13 +65,13 @@ Content-Type: application/json
 ###
 # Получение информации о счете по ID пользователя
 # Ожидаемый ответ: 200 OK с данными счета
-GET {{paymentsHost}}/api/accounts/user/{{userId}}
+GET {{paymentsHost}}/api/accounts?userId={{userId}}
 
 
 ###
 # Получение информации о несуществующем счете по ID пользователя
 # Ожидаемый ответ: 404 Not Found
-GET {{paymentsHost}}/api/accounts/user/00000000-0000-0000-0000-000000000001
+GET {{paymentsHost}}/api/accounts?userId=00000000-0000-0000-0000-000000000000
 
 
 ###

@@ -18,7 +18,7 @@
 -   `POST /api/accounts`: Создать новый счет для пользователя с нулевым балансом
 -   `POST /api/accounts/deposit`: Пополнить счет пользователя
 -   `GET /api/accounts/{id}`: Получить информацию о счете по его уникальному ID
--   `GET /api/accounts/user/{userId}`: Получить информацию о счете по ID пользователя
+-   `GET /api/accounts`: Получить информацию о счете по ID пользователя
 
 ### Orders Service (`/api/orders`)
 

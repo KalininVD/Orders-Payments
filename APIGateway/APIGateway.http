@@ -56,7 +56,7 @@ GET {{apiGatewayHost}}/api/orders/<ID_ЗАКАЗА>
 ###
 # 1.5. Проверяем баланс счета пользователя
 # Ожидаемый ответ: 200 OK. Баланс должен уменьшиться на 75 (стать 25).
-GET {{apiGatewayHost}}/api/accounts/user/{{userId}}
+GET {{apiGatewayHost}}/api/accounts?userId={{userId}}
 
 
 ###

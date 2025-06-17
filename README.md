@@ -18,7 +18,7 @@ All API endpoints are accessible through the API Gateway.
 -   `POST /api/accounts`: Create a new account for a user with zero balance
 -   `POST /api/accounts/deposit`: Deposit funds into a user's account
 -   `GET /api/accounts/{id}`: Get account details by its ID
--   `GET /api/accounts/user/{userId}`: Get account details by the user's ID
+-   `GET /api/accounts`: Get account details by the user's ID
 
 ### Orders Service (`/api/orders`)
 
