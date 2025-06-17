@@ -8,6 +8,9 @@ public class Account
 
     public decimal Balance { get; private set; }
 
+    // Поле для отслеживания версии объекта - для предотвращения конфликтов в базе данных
+    public byte[] Version { get; private set; }
+
     private Account() { }
 
     public Account(Guid id, Guid userId)

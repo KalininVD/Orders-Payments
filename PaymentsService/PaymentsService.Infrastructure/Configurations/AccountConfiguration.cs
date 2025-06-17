@@ -12,5 +12,7 @@ public class AccountConfiguration : IEntityTypeConfiguration<Account>
 
         builder.Property(a => a.Balance)
             .HasColumnType("decimal(16, 2)");
+
+        builder.Property(a => a.Version).IsRowVersion();
     }
 }
