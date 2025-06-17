@@ -15,7 +15,7 @@ public class OrderPaymentRequestConsumer(IAccountRepository accountRepository, I
 
     private readonly ILogger<OrderPaymentRequestConsumer> _logger = logger;
 
-    private const int MaxRetries = 3;
+    private const int MaxRetries = 5;
 
     public async Task Consume(ConsumeContext<OrderPaymentRequest> context)
     {

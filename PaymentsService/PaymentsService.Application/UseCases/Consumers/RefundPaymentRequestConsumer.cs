@@ -2,6 +2,7 @@ using MassTransit;
 using Microsoft.Extensions.Logging;
 using PaymentsService.Application.Abstractions;
 using Shared.Contracts.OrderEvents;
+using Microsoft.EntityFrameworkCore;
 
 namespace PaymentsService.Application.UseCases.Consumers;
 
@@ -18,18 +19,31 @@ public class RefundPaymentRequestConsumer(IAccountRepository accountRepository, 
 
         _logger.LogInformation("Processing refund request for UserId: {UserId}, Amount: {Amount}", message.UserId, message.Amount);
 
-        var account = await _accountRepository.GetByUserIdAsync(message.UserId, context.CancellationToken);
-
-        if (account is null)
+        while (true)
         {
-            _logger.LogError("Cannot refund UserId: {UserId}. Account not found.", message.UserId);
-            return;
+            try
+            {
+                var account = await _accountRepository.GetByUserIdAsync(message.UserId, context.CancellationToken);
+
+                if (account is null)
+                {
+                    _logger.LogError("Cannot refund UserId: {UserId}. Account not found.", message.UserId);
+                    return;
+                }
+
+                account.Deposit(message.Amount);
+
+                await _unitOfWork.SaveChangesAsync(context.CancellationToken);
+                _logger.LogInformation("Refund for UserId: {UserId} succeeded.", message.UserId);
+
+                break;
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                _logger.LogWarning(ex, "Concurrency conflict for OrderId: {OrderId}. Retrying...", message.UserId);
+
+                await Task.Delay(TimeSpan.FromMilliseconds(50 + Random.Shared.Next(0, 100)), context.CancellationToken);
+            }
         }
-
-        account.Deposit(message.Amount);
-
-        await _unitOfWork.SaveChangesAsync(context.CancellationToken);
-
-        _logger.LogInformation("Refund for UserId: {UserId} succeeded. Amount: {Amount}", message.UserId, message.Amount);
     }
 }
