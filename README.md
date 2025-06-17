@@ -11,31 +11,31 @@ All communication from the outside world is routed through a dedicated **API Gat
 
 ## Supported API Endpoints
 
-The API is accessible through the API Gateway.
+All API endpoints are accessible through the API Gateway.
 
 ### Payments Service (`/api/accounts`)
 
--   `POST /api/accounts`: Create a new account for a user with a zero balance.
--   `POST /api/accounts/deposit`: Deposit funds into a user's account.
--   `GET /api/accounts/{id}`: Get account details by its unique ID.
--   `GET /api/accounts/user/{userId}`: Get account details by the user's ID.
+-   `POST /api/accounts`: Create a new account for a user with zero balance
+-   `POST /api/accounts/deposit`: Deposit funds into a user's account
+-   `GET /api/accounts/{id}`: Get account details by its ID
+-   `GET /api/accounts/user/{userId}`: Get account details by the user's ID
 
 ### Orders Service (`/api/orders`)
 
--   `POST /api/orders`: Create a new order, which asynchronously triggers the payment process.
--   `GET /api/orders`: Get a list of all orders for a specific user.
--   `GET /api/orders/{id}`: Get the details and current status of a specific order.
--   `PATCH /api/orders/{id}/cancel`: Cancel an order by its ID (if it has not been completed or already cancelled).
+-   `POST /api/orders`: Create a new order - asynchronously triggers the payment process
+-   `GET /api/orders`: Get a list of all orders for a specific user
+-   `GET /api/orders/{id}`: Get the details and current status of a specific order
+-   `PATCH /api/orders/{id}/cancel`: Cancel an order by its ID
 
 ## Asynchronous Communication Flow
 
-The core business process of creating and paying for an order is fully asynchronous to ensure system resilience and responsiveness:
+The core business process of creating and paying for an order is fully asynchronous:
 
 1.  A client sends a `POST` request to the `Orders Service` to create an order. The order is immediately created with a `NEW` status.
 2.  The `Orders Service` atomically saves the new order and publishes an `OrderPaymentRequest` message to a **RabbitMQ** message broker.
 3.  The `Payments Service` consumes this message, finds the user's account, and attempts to withdraw the required amount.
 4.  Based on the outcome, the `Payments Service` publishes a corresponding event: `OrderPaymentSucceeded` or `OrderPaymentFailed`.
-5.  The `Orders Service` consumes the result event and updates the order's status to `FINISHED` or `CANCELLED`, thus completing the cycle.
+5.  The `Orders Service` consumes the result event and updates the order's status to `FINISHED` or `CANCELLED`, thus completing the lifecycle of the order.
 
 ## How to Run
 
@@ -58,29 +58,32 @@ The core business process of creating and paying for an order is fully asynchron
 
 ## Architecture & Design Patterns
 
-The system is built upon a modern, robust set of architectural principles and design patterns to ensure scalability, maintainability, and reliability.
-
 ### High-Level Architecture
 
 -   **Microservices Architecture:** The system is decomposed into independent, deployable services (`OrdersService`, `PaymentsService`) with a single point of entry via an **API Gateway** (implemented with YARP).
--   **Database-per-Service:** Each microservice has its own private PostgreSQL database, ensuring loose coupling and independent data management.
+-   **Database-per-Service:** Each microservice has its own private PostgreSQL database, ensuring independent data management.
 
 ### Core Application Design
 
 -   **Clean Architecture:** Each service follows a strict separation of concerns, with dependencies directed inwards. This isolates business logic from external frameworks and technologies.
-    -   **Domain Layer:** Contains rich domain entities (`Order`, `Account`) that encapsulate business rules and protect their own state (invariants). This follows the **Domain-Driven Design (DDD)** principle of a Rich Domain Model.
+    -   **Domain Layer:** Contains domain entities (`Order`, `Account`) that encapsulate business rules and protect their own state (invariants). This follows the **Domain-Driven Design (DDD)** principle of a Rich Domain Model.
     -   **Application Layer:** Orchestrates the use cases of the application. It is built upon the **CQRS (Command Query Responsibility Segregation)** pattern, using **MediatR** to separate commands (state-changing operations) from queries (data-retrieval operations).
     -   **Infrastructure Layer:** Contains implementations for external concerns, such as database access (**Repository Pattern** and **Unit of Work Pattern** with Entity Framework Core) and message bus integration.
-    -   **Web API Layer:** The entry point for external requests, containing thin controllers that delegate all work to the Application Layer.
+    -   **Web API Layer:** The entry point for external requests, containing thin controllers that delegate all work to the Application Layer and return RESTful responses in JSON format.
 
 ### Reliability and Messaging Patterns
 
-To ensure data consistency and reliable communication in a distributed environment, the project heavily relies on advanced messaging patterns implemented with **MassTransit** and **RabbitMQ**.
+To ensure data consistency and reliable communication in a distributed environment, the project relies on messaging patterns implemented with **MassTransit** and **RabbitMQ**.
 
 -   **Saga Pattern (Choreography-based):** The entire order processing flow is implemented as a Saga. There is no central orchestrator; instead, services communicate by publishing and subscribing to events. `OrdersService` initiates the Saga by publishing a payment request, and `PaymentsService` continues it by publishing a payment result, ensuring the entire business transaction either completes successfully or fails gracefully.
 -   **Transactional Outbox:** This pattern guarantees that a message is sent to the message broker **if and only if** the corresponding database transaction is successfully committed. When an order is created, the `Order` entity and the `OrderPaymentRequest` message are saved atomically. This prevents scenarios where an order is saved but the payment request is never sent.
 -   **Transactional Inbox (Idempotent Consumers):** This pattern ensures that incoming messages are processed **exactly once**. MassTransit uses an `InboxState` table to track received messages. If a message is delivered more than once (e.g., due to a network issue), the consumer will process it only the first time, preventing duplicate operations like charging a customer twice for the same order.
--   **At-Most-Once / Exactly-Once Semantics:** The combination of the Transactional Outbox and Inbox patterns effectively achieves **exactly-once** message processing, fulfilling and exceeding the project requirements.
+-   **Exactly‑Once Semantics for Account Withdrawals:**  
+    - Optimistic concurrency is enforced on the `Account` entity via a `RowVersion` (`Version` `byte[]` column) configured in _EF Core_.
+    - In `OrderPaymentRequestConsumer`, the account is loaded, `Withdraw(amount)` is called, and then `SaveChangesAsync()` is invoked.
+    - `DbUpdateConcurrencyException` triggers a retry (up to $3$ attempts with a small random delay).
+    - `OrderPaymentSucceeded` event is published only after a successful transaction commit.
+    This approach guarantees that each withdrawal is applied **exactly once** at the database level - even under high contention - and prevents publishing a success event unless the funds were truly deducted.
 
 ### Other Implemented Patterns
 
@@ -92,8 +95,8 @@ To ensure data consistency and reliable communication in a distributed environme
 
 This project places a high emphasis on code quality, reliability, and testability.
 
--   **Unit Testing:** The core business logic located in the `Domain` and `Application` layers is thoroughly covered by unit tests. This ensures that all business rules, use cases, and logic branches are validated in isolation.
+-   **Unit Testing:** The core business logic located in the `Domain` and `Application` layers is thoroughly covered by unit tests. This ensures that all business rules, use cases and logic branches are validated in isolation.
     -   **Frameworks Used:** xUnit, Moq, and FluentAssertions.
-    -   **Code Coverage:** The project achieves a **line coverage of 82%** for the testable layers, significantly exceeding the common industry standards and project requirements.
+    -   **Code Coverage:** The project achieves a **line coverage of 82%**.
 
 -   **Manual End-to-End Testing:** The provided `.http` files allow for comprehensive end-to-end testing of the entire system, verifying the correct asynchronous interaction between all services through the API Gateway.
