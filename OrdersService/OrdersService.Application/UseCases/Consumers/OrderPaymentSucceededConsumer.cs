@@ -35,7 +35,7 @@ public class OrderPaymentSucceededConsumer(IOrderRepository orderRepository, IUn
                 "Payment for a cancelled OrderId: {OrderId} was processed. Initiating refund.",
                 message.OrderId);
 
-            await _publishEndpoint.Publish(new RefundPaymentRequest(message.OrderId, order.Amount), context.CancellationToken);
+            await _publishEndpoint.Publish(new RefundPaymentRequest(order.UserId, order.Amount), context.CancellationToken);
 
             return;
         }
