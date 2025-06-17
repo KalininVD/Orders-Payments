@@ -34,6 +34,7 @@ public static class ServiceCollectionExtension
         services.AddMassTransit(busConfigurator =>
         {
             busConfigurator.AddConsumer<OrderPaymentRequestConsumer>();
+            busConfigurator.AddConsumer<RefundPaymentRequestConsumer>();
 
             busConfigurator.AddEntityFrameworkOutbox<PaymentsDbContext>(outboxConfigurator =>
             {
