@@ -15,6 +15,7 @@ public class OrderPaymentSucceededConsumerTests
 {
     private readonly Mock<IOrderRepository> _orderRepositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+    private readonly Mock<IPublishEndpoint> _publishEndpointMock;
     private readonly Mock<ILogger<OrderPaymentSucceededConsumer>> _loggerMock;
     private readonly OrderPaymentSucceededConsumer _consumer;
 
@@ -22,11 +23,13 @@ public class OrderPaymentSucceededConsumerTests
     {
         _orderRepositoryMock = new Mock<IOrderRepository>();
         _unitOfWorkMock = new Mock<IUnitOfWork>();
+        _publishEndpointMock = new Mock<IPublishEndpoint>();
         _loggerMock = new Mock<ILogger<OrderPaymentSucceededConsumer>>();
 
         _consumer = new OrderPaymentSucceededConsumer(
             _orderRepositoryMock.Object,
             _unitOfWorkMock.Object,
+            _publishEndpointMock.Object,
             _loggerMock.Object);
     }
 
@@ -76,4 +79,6 @@ public class OrderPaymentSucceededConsumerTests
         // Assert
         _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
+
+    
 }

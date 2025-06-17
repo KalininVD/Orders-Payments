@@ -1,5 +1,6 @@
 using FluentAssertions;
 using MassTransit;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using PaymentsService.Application.Abstractions;
@@ -121,5 +122,34 @@ public class OrderPaymentRequestConsumerTests
             It.IsAny<CancellationToken>()), Times.Once);
 
         _publishEndpointMock.Verify(p => p.Publish(It.IsAny<OrderPaymentSucceeded>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Consume_Should_RetryAndSucceed_WhenConcurrencyExceptionOccurs()
+    {
+        // Arrange
+        var message = new OrderPaymentRequest(Guid.NewGuid(), Guid.NewGuid(), 100m);
+        var consumeContextMock = CreateConsumeContextMock(message);
+
+        _accountRepositoryMock
+        .Setup(repo => repo.GetByUserIdAsync(message.UserId, It.IsAny<CancellationToken>()))
+        .ReturnsAsync(() =>
+        {
+            var account = new Account(Guid.NewGuid(), message.UserId);
+            account.Deposit(200m);
+            return account;
+        });
+
+        _unitOfWorkMock.SetupSequence(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new DbUpdateConcurrencyException("Concurrency conflict", []))
+            .ReturnsAsync(1);
+
+        // Act
+        await _consumer.Consume(consumeContextMock.Object);
+
+        // Assert
+        _accountRepositoryMock.Verify(repo => repo.GetByUserIdAsync(message.UserId, It.IsAny<CancellationToken>()), Times.Exactly(2));
+        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Exactly(2));
+        _publishEndpointMock.Verify(p => p.Publish(It.IsAny<OrderPaymentSucceeded>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 }
