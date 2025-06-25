@@ -1,5 +1,4 @@
 using System.Net.WebSockets;
-using System.Text;
 using APIGateway.Services;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Contracts.Notifications;
@@ -32,6 +31,7 @@ public static class WebSocketEndpoints
             try
             {
                 var buffer = new byte[1024 * 4];
+
                 var receiveResult = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
                 while (!receiveResult.CloseStatus.HasValue)
                 {
@@ -44,7 +44,7 @@ public static class WebSocketEndpoints
             }
             finally
             {
-                await manager.RemoveSocketAsync(userId);
+                await manager.CloseAndRemoveSocketAsync(userId, webSocket, logger);
                 logger.LogInformation("WebSocket connection closed for User: {UserId}", userId);
             }
         });
@@ -52,17 +52,11 @@ public static class WebSocketEndpoints
         app.MapPost("/internal-api/notify",
             async ([FromBody] NotificationRequest request, ConnectionManager manager, ILogger<Program> logger) =>
         {
-            var socket = manager.GetSocketByUserId(request.UserId);
-            if (socket is not null && socket.State == WebSocketState.Open)
-            {
-                var bytes = Encoding.UTF8.GetBytes(request.Message);
-                await socket.SendAsync(new ArraySegment<byte>(bytes, 0, bytes.Length), WebSocketMessageType.Text, true, CancellationToken.None);
-                logger.LogInformation("Sent notification to User: {UserId}", request.UserId);
-                return Results.Ok();
-            }
+            logger.LogInformation("Attempting to send notification to User: {UserId}", request.UserId);
 
-            logger.LogWarning("Socket not found or was closed for User: {UserId}", request.UserId);
-            return Results.NotFound(new { Message = $"Connection for user {request.UserId} not found." });
+            await manager.SendMessageToUserAsync(request.UserId, request.Message);
+
+            return Results.Ok();
         });
     }
 }
