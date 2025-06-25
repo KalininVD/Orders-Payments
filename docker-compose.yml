@@ -25,12 +25,11 @@ services:
 
   ordersservice:
     image: ordersservice
-    container_name: ordersservice
     build:
       context: .
       dockerfile: OrdersService/Dockerfile
-    ports:
-      - "${ORDERS_SERVICE_PORT:-5002}:80"
+    deploy:
+      replicas: 3
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:80
