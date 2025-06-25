@@ -12,7 +12,7 @@
 
     <div class="container">
         <div class="card">
-            <h2>Шаг 1: Пользователь и Счет</h2>
+            <h2>Создание и пополнение счета для пользователя</h2>
             <label for="userId">UserID:</label>
             <input type="text" id="userId" value="3fa85f64-5717-4562-b3fc-2c963f66afa6">
             <button id="createAccountBtn">Создать счет</button>
@@ -24,12 +24,22 @@
         </div>
 
         <div class="card">
-            <h2>Шаг 2: Заказ</h2>
+            <h2>Работа с WebSocket</h2>
+            <button id="connectWsBtn">Подключить WebSocket</button>
+            <button id="disconnectWsBtn">Отключить WebSocket</button>
+        </div>
+
+        <div class="card">
+            <h2>Работа с заказами</h2>
             <label for="orderAmount">Сумма заказа:</label>
-            <input type="number" id="orderAmount" value="150">
+            <input type="number" id="orderAmount" value="100500">
             <label for="orderDescription">Описание:</label>
-            <input type="text" id="orderDescription" value="Резиновая уточка">
+            <input type="text" id="orderDescription" value="Книга по Clean Architecture">
             <button id="createOrderBtn">Создать заказ</button>
+
+            <label for="orderIdInput">OrderID для отмены:</label>
+            <input type="text" id="orderIdInput" placeholder="Вставьте ID заказа сюда">
+            <button id="cancelOrderBtn">Отменить заказ</button>
         </div>
     </div>
 
