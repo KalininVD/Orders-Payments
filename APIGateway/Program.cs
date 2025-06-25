@@ -1,11 +1,14 @@
 using Microsoft.OpenApi.Models;
+using APIGateway.Services;
+using APIGateway.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var reverseProxyConfig = builder.Configuration.GetSection("ReverseProxy");
 
-builder.Services.AddReverseProxy()
-    .LoadFromConfig(reverseProxyConfig);
+builder.Services.AddReverseProxy().LoadFromConfig(reverseProxyConfig);
+
+builder.Services.AddSingleton<ConnectionManager>();
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -16,7 +19,10 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+app.UseWebSockets();
 app.MapReverseProxy();
+
+app.MapWebSocketEndpoints();
 
 if (app.Environment.IsDevelopment())
 {

@@ -6,7 +6,9 @@ using OrdersService.Application.Abstractions;
 using OrdersService.Infrastructure.Repositories;
 using OrdersService.Infrastructure.Options;
 using OrdersService.Application.UseCases.Consumers;
+using OrdersService.Infrastructure.Notifications;
 using MassTransit;
+using Microsoft.Extensions.Logging;
 
 namespace OrdersService.Infrastructure;
 
@@ -25,6 +27,25 @@ public static class ServiceCollectionExtension
             options.UseNpgsql(connectionString));
 
         services.AddScoped<IOrderRepository, PostgresOrderRepository>();
+
+        services.AddHttpClient();
+
+        var apiGatewayConfig = configuration.GetRequiredSection("ApiGateway");
+
+        services.AddScoped<IOrderNotifier>(sp =>
+        {
+            var baseUrl = apiGatewayConfig["BaseUrl"]
+                ?? throw new InvalidOperationException("ApiGateway:BaseUrl is not configured.");
+
+            var notifyEndpoint = apiGatewayConfig["NotifyEndpoint"]
+                ?? throw new InvalidOperationException("ApiGateway:NotifyEndpoint is not configured.");
+
+            var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+
+            var logger = sp.GetRequiredService<ILogger<ApiGatewayNotifier>>();
+
+            return new ApiGatewayNotifier(httpClientFactory, baseUrl, notifyEndpoint, logger);
+        });
 
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<OrdersDbContext>());
 

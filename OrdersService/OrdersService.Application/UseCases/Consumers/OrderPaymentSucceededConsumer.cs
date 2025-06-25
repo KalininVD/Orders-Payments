@@ -7,11 +7,12 @@ using Shared.Contracts.OrderEvents;
 namespace OrdersService.Application.UseCases.Consumers;
 
 public class OrderPaymentSucceededConsumer(IOrderRepository orderRepository, IUnitOfWork unitOfWork,
-    IPublishEndpoint publishEndpoint, ILogger<OrderPaymentSucceededConsumer> logger) : IConsumer<OrderPaymentSucceeded>
+    IPublishEndpoint publishEndpoint, IOrderNotifier notifier, ILogger<OrderPaymentSucceededConsumer> logger) : IConsumer<OrderPaymentSucceeded>
 {
     private readonly IOrderRepository _orderRepository = orderRepository;
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
     private readonly IPublishEndpoint _publishEndpoint = publishEndpoint;
+    private readonly IOrderNotifier _notifier = notifier;
 
     private readonly ILogger<OrderPaymentSucceededConsumer> _logger = logger;
 
@@ -45,5 +46,7 @@ public class OrderPaymentSucceededConsumer(IOrderRepository orderRepository, IUn
         await _unitOfWork.SaveChangesAsync(context.CancellationToken);
 
         _logger.LogInformation("Order {OrderId} status updated to Finished.", order.Id);
+
+        await _notifier.NotifyOrderStatusChanged(order.UserId, order.Id, "FINISHED");
     }
 }

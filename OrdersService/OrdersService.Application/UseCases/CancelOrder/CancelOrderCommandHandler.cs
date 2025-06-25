@@ -3,11 +3,13 @@ using OrdersService.Application.Abstractions;
 
 namespace OrdersService.Application.UseCases.CancelOrder;
 
-public class CancelOrderCommandHandler(IOrderRepository orderRepository, IUnitOfWork unitOfWork) : IRequestHandler<CancelOrderCommand>
+public class CancelOrderCommandHandler(IOrderRepository orderRepository, IUnitOfWork unitOfWork, IOrderNotifier notifier) : IRequestHandler<CancelOrderCommand>
 {
     private readonly IOrderRepository _orderRepository = orderRepository;
 
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
+
+    private readonly IOrderNotifier _notifier = notifier;
 
     public async Task Handle(CancelOrderCommand request, CancellationToken cancellationToken)
     {
@@ -17,5 +19,7 @@ public class CancelOrderCommandHandler(IOrderRepository orderRepository, IUnitOf
         order.MarkAsCancelled();
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        await _notifier.NotifyOrderStatusChanged(order.UserId, order.Id, "CANCELLED");
     }
 }
