@@ -177,7 +177,7 @@ depositBtn.addEventListener('click', async () => {
       body: JSON.stringify({userId, amount})
     });
 
-    if (response.status !== 204) {
+    if (response.status !== 200) {
       const errorData = await response.json();
       throw new Error(
           `Ошибка сервера: ${response.status} - ${errorData.error}`);
