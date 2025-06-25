@@ -5,10 +5,11 @@ using Shared.Contracts.OrderEvents;
 
 namespace OrdersService.Application.UseCases.Consumers;
 
-public class OrderPaymentFailedConsumer(IOrderRepository orderRepository, IUnitOfWork unitOfWork, ILogger<OrderPaymentFailedConsumer> logger) : IConsumer<OrderPaymentFailed>
+public class OrderPaymentFailedConsumer(IOrderRepository orderRepository, IUnitOfWork unitOfWork, IOrderNotifier notifier, ILogger<OrderPaymentFailedConsumer> logger) : IConsumer<OrderPaymentFailed>
 {
     private readonly IOrderRepository _orderRepository = orderRepository;
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
+    private readonly IOrderNotifier _notifier = notifier;
 
     private readonly ILogger<OrderPaymentFailedConsumer> _logger = logger;
 
@@ -32,5 +33,7 @@ public class OrderPaymentFailedConsumer(IOrderRepository orderRepository, IUnitO
         await _unitOfWork.SaveChangesAsync(context.CancellationToken);
 
         _logger.LogInformation("Order {OrderId} status updated to Cancelled.", order.Id);
+
+        await _notifier.NotifyOrderStatusChanged(order.UserId, order.Id, "CANCELLED");
     }
 }
